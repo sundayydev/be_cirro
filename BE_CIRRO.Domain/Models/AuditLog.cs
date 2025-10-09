@@ -19,13 +19,13 @@ namespace BE_CIRRO.Domain.Models
         
 
         [ForeignKey(nameof(UserId))]
-        public User User { get; set; }
+        public User? User { get; set; }
 
         [Required]
-        public string Action { get; set; } 
+        public required string Action { get; set; } 
 
         [Required]
-        public string TargetType { get; set; } 
+        public required string TargetType { get; set; } 
 
         [Required]
         public Guid TargetId { get; set; }

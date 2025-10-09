@@ -13,10 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="IRepositories\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\BE_CIRRO.Shared\BE_CIRRO.Shared.csproj" />
   </ItemGroup>
 

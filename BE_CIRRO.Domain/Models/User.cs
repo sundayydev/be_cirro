@@ -6,17 +6,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BE_CIRRO.Domain.Models
+namespace BE_CIRRO.Domain.Models;
+
+
+public class User : ModelBase
 {
-
-    public class User : ModelBase
-    {
-        [Key]
-        public Guid UserId { set; get; }
-        public string Username { get; set; }
-        public string Password { get; set; }
-        public string Email { get; set; }
-
-        public string Role { get; set; } 
-    }
+    [Key]
+    public Guid UserId { set; get; }
+    public required string Username { get; set; }
+    public required string Password { get; set; }
+    public string? Email { get; set; }
+    public required string Role { get; set; } = "User";
 }
