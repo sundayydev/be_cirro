@@ -11,14 +11,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Extensions\" />
-    <Folder Include="Middlewares\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\BE_CIRRO.Core\BE_CIRRO.Core.csproj" />
     <ProjectReference Include="..\BE_CIRRO.Domain\BE_CIRRO.Domain.csproj" />
     <ProjectReference Include="..\BE_CIRRO.Shared\BE_CIRRO.Shared.csproj" />
   </ItemGroup>
+
+  <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>
 
 </Project>

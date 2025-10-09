@@ -1,0 +1,71 @@
+﻿1. Auth API (xác thực và phân quyền)
+
+POST /api/auth/register → Đăng ký user mới
+
+POST /api/auth/login → Đăng nhập, trả về JWT
+
+GET /api/auth/me → Lấy thông tin user hiện tại (từ JWT)
+
+2. User API
+
+GET /api/users → Lấy danh sách user
+
+GET /api/users/{id} → Lấy chi tiết 1 user
+
+POST /api/users → Tạo user (Admin)
+
+PUT /api/users/{id} → Cập nhật user
+
+DELETE /api/users/{id} → Xóa user
+
+3. Folder API
+
+GET /api/folders → Lấy danh sách folder root (hoặc tất cả)
+
+GET /api/folders/{id} → Lấy chi tiết folder
+
+POST /api/folders → Tạo folder (có ParentFolderId để tạo cây thư mục)
+
+PUT /api/folders/{id} → Đổi tên / cập nhật folder
+
+DELETE /api/folders/{id} → Xóa folder
+
+4. File API
+
+GET /api/files → Lấy danh sách file (theo folder hoặc tất cả)
+
+GET /api/files/{id} → Lấy thông tin file
+
+POST /api/files → Upload file (kèm FolderId, OwnerId)
+
+PUT /api/files/{id} → Cập nhật thông tin file (tên, di chuyển sang folder khác)
+
+DELETE /api/files/{id} → Xóa file
+
+5. FileVersion API
+
+GET /api/files/{fileId}/versions → Lấy danh sách version của file
+
+GET /api/files/{fileId}/versions/{versionId} → Lấy chi tiết 1 version
+
+POST /api/files/{fileId}/versions → Thêm version mới (khi upload lại file)
+
+DELETE /api/files/{fileId}/versions/{versionId} → Xóa 1 version
+
+6. Permission API
+
+GET /api/permissions → Lấy danh sách permission
+
+GET /api/permissions/{id} → Lấy chi tiết 1 permission
+
+POST /api/permissions → Cấp quyền cho user với file/folder (read, write, delete)
+
+PUT /api/permissions/{id} → Cập nhật quyền
+
+DELETE /api/permissions/{id} → Xóa quyền
+
+7. AuditLog API
+
+GET /api/auditlogs → Lấy danh sách log (có thể filter theo user, action, thời gian)
+
+GET /api/auditlogs/{id} → Lấy chi tiết log

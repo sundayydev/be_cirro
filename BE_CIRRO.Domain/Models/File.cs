@@ -16,25 +16,25 @@ namespace BE_CIRRO.Domain.Models
 
         [Required]
         [MaxLength(255)]
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         [Required]
         [MaxLength(500)]
-        public string FilePath { get; set; }
+        public required string FilePath { get; set; }
 
         public int Size { get; set; }  
 
         [MaxLength(100)]
-        public string FileType { get; set; } 
+        public string? FileType { get; set; } 
 
         public Guid FolderId { get; set; }
 
         [ForeignKey(nameof(FolderId))]
-        public Folder Folder { get; set; }
+        public required Folder Folder { get; set; }
 
         public Guid OwnerId { get; set; }
 
         [ForeignKey(nameof(OwnerId))]
-        public User Owner { get; set; }
+        public required User Owner { get; set; }
     }
 }

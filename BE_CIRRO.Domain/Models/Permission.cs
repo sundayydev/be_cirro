@@ -13,28 +13,17 @@ namespace BE_CIRRO.Domain.Models
     {
         [Key]
         public Guid PermissionId { get; set; }
-        
-
         public Guid UserId { get; set; }
-        
-
         [ForeignKey(nameof(UserId))]
-        public User User { get; set; }
-
+        public required User User { get; set; }
         public Guid? FileId { get; set; }
-        
-
         [ForeignKey(nameof(FileId))]
-        public File File { get; set; }
-
+        public required File File { get; set; }
         public Guid? FolderId { get; set; }
-        
-
         [ForeignKey(nameof(FolderId))]
-        public Folder Folder { get; set; }
-
+        public required Folder Folder { get; set; }
         [Required]
         [MaxLength(20)]
-        public string PermissionType { get; set; } 
+        public string? PermissionType { get; set; } 
     }
 }
