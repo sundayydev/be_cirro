@@ -17,6 +17,15 @@ public static class ServiceCollectionExtensions
         services.AddScoped<FolderService>();
         services.AddScoped<IFolderRepository, FolderRepository>();
 
+        //File
+        services.AddScoped<FileService>();
+        services.AddScoped<S3FileService>();
+        services.AddScoped<IFileRepository, FileRepository>();
+
+        //FileVersion
+        services.AddScoped<FileVersionService>();
+        services.AddScoped<IFileVersionRepository, FileVersionRepository>();
+
 
         return services;
     }

@@ -110,5 +110,7 @@ namespace BE_CIRRO.API.Controllers
             }
             return Ok(ApiResponseFactory.Success(result, "Lấy cây thư mục thành công."));
         }
+
+        //DELTE: api/folder/owner/{ownerId}
     }
 }
