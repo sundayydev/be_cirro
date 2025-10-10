@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BE_CIRRO.Domain.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,5 +9,7 @@ namespace BE_CIRRO.Domain.IRepositories
 {
     public interface IFileVersionRepository : IRepository<Models.FileVersion>
     {
+        Task<IEnumerable<FileVersion>> GetByFileAsync(Guid fileId);
+        Task<FileVersion?> GetLatestVersionAsync(Guid fileId);
     }
 }
