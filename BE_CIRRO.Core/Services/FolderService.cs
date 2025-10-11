@@ -1,6 +1,7 @@
 ﻿using BE_CIRRO.Domain.IRepositories;
 using BE_CIRRO.Domain.Models;
 using BE_CIRRO.Shared.DTOs.Folder;
+using Mapster;
 using MapsterMapper;
 using System;
 using System.Collections.Generic;
@@ -113,4 +114,14 @@ public class FolderService
 
     }
 
+    public async Task<Folder?> GetByIdAsync(Guid folderId)
+    {
+        return await _folderRepository.GetByIdAsync(folderId);
+    }
+
+    public async Task<IEnumerable<FolderDto>> GetByParentAsync(Guid? parentId)
+    {
+        var folders = await _folderRepository.GetByParentAsync(parentId);
+        return folders.Adapt<IEnumerable<FolderDto>>();
+    }
 }
