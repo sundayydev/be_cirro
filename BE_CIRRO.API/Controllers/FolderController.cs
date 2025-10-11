@@ -14,11 +14,13 @@ namespace BE_CIRRO.API.Controllers
     public class FolderController : ControllerBase
     {
         private readonly FolderService _folderService;
+        private readonly FileService _fileService;
         private readonly ILogger<FolderController> _logger;
         private readonly IMapper _mapper;
-        public FolderController(FolderService folderService, ILogger<FolderController> logger, IMapper mapper)
+        public FolderController(FolderService folderService, ILogger<FolderController> logger, IMapper mapper, FileService fileService)
         {
             _folderService = folderService;
+            _fileService = fileService;
             _logger = logger;
             _mapper = mapper;
 
@@ -112,5 +114,33 @@ namespace BE_CIRRO.API.Controllers
         }
 
         //DELTE: api/folder/owner/{ownerId}
+
+        // GET: api/folder/{folderId}/content
+        [HttpGet("{folderId}/content")]
+        public async Task<IActionResult> GetFolderContent(Guid folderId)
+        {
+            try
+            {
+                var folder = await _folderService.GetByIdAsync(folderId);
+                if (folder == null)
+                    return NotFound(new { message = $"Folder with id {folderId} not found." });
+
+                var subFolders = await _folderService.GetByParentAsync(folderId);
+                var files = await _fileService.GetByFolderAsync(folderId);
+
+                return Ok(ApiResponseFactory.Success(new
+                {
+                    folderId = folder.FolderId,
+                    folderName = folder.Name,
+                    subFolders,
+                    files
+                }));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching folder content for {FolderId}", folderId);
+                return StatusCode(500, new { message = "Internal server error", error = ex.Message });
+            }
+        }
     }
 }
