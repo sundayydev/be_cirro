@@ -26,6 +26,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<FileVersionService>();
         services.AddScoped<IFileVersionRepository, FileVersionRepository>();
 
+        //Permission
+        services.AddScoped<PermissionService>();    
+        services.AddScoped<IPermissionRepository, PermissionRepository>();
+
 
         return services;
     }
