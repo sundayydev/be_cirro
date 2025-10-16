@@ -11,4 +11,5 @@ public interface IPermissionRepository : IRepository<Models.Permission>
 {
     Task<IEnumerable<Permission>> GetByFileIdAsync(Guid fileId);
     Task<IEnumerable<Permission>> GetByUserIdAsync(Guid userId);
+    Task<IEnumerable<Permission>> GetByFolderIdAsync(Guid folderId);
 }

@@ -69,4 +69,96 @@ public class PermissionService
         await _permissionRepo.DeleteAsync(permission);
         return true;
     }
+
+    // Lấy chi tiết một permission cụ thể
+    public async Task<PermissionDto?> GetByIdAsync(Guid id)
+    {
+        var permission = await _permissionRepo.GetByIdAsync(id);
+        if (permission == null) return null;
+
+        return _mapper.Map<PermissionDto>(permission);
+    }
+
+    // Lấy tất cả permissions của một folder
+    public async Task<IEnumerable<PermissionDto>> GetByFolderAsync(Guid folderId)
+    {
+        var permissions = await _permissionRepo.GetByFolderIdAsync(folderId);
+        return _mapper.Map<IEnumerable<PermissionDto>>(permissions);
+    }
+
+    // Tạo permissions hàng loạt cho nhiều user
+    public async Task<IEnumerable<PermissionDto>> CreateBulkAsync(PermissionBulkCreateDto dto)
+    {
+        var createdPermissions = new List<PermissionDto>();
+
+        foreach (var userId in dto.UserIds)
+        {
+            var permissionDto = new PermissionCreateDto
+            {
+                UserId = userId,
+                FileId = dto.FileId,
+                FolderId = dto.FolderId,
+                PermissionType = dto.PermissionType
+            };
+
+            var created = await CreateAsync(permissionDto);
+            createdPermissions.Add(created);
+        }
+
+        return createdPermissions;
+    }
+
+    // Xóa permission của user với file cụ thể
+    public async Task<bool> DeleteByUserAndFileAsync(Guid userId, Guid fileId)
+    {
+        var permissions = await _permissionRepo.GetByFileIdAsync(fileId);
+        var permission = permissions.FirstOrDefault(p => p.UserId == userId);
+        
+        if (permission == null) return false;
+
+        await _permissionRepo.DeleteAsync(permission);
+        return true;
+    }
+
+    // Xóa permission của user với folder cụ thể
+    public async Task<bool> DeleteByUserAndFolderAsync(Guid userId, Guid folderId)
+    {
+        var permissions = await _permissionRepo.GetByFolderIdAsync(folderId);
+        var permission = permissions.FirstOrDefault(p => p.UserId == userId);
+        
+        if (permission == null) return false;
+
+        await _permissionRepo.DeleteAsync(permission);
+        return true;
+    }
+
+    // Lấy danh sách file mà user có quyền truy cập
+    public async Task<IEnumerable<object>> GetAccessibleFilesAsync(Guid userId)
+    {
+        var permissions = await _permissionRepo.GetByUserIdAsync(userId);
+        var filePermissions = permissions.Where(p => p.FileId.HasValue);
+
+        // Trả về thông tin file với quyền tương ứng
+        return filePermissions.Select(p => new
+        {
+            FileId = p.FileId,
+            PermissionType = p.PermissionType,
+            PermissionId = p.PermissionId
+        });
+    }
+
+    // Lấy danh sách folder mà user có quyền truy cập
+    public async Task<IEnumerable<object>> GetAccessibleFoldersAsync(Guid userId)
+    {
+        var permissions = await _permissionRepo.GetByUserIdAsync(userId);
+        var folderPermissions = permissions.Where(p => p.FolderId.HasValue);
+
+        // Trả về thông tin folder với quyền tương ứng
+        return folderPermissions.Select(p => new
+        {
+            FolderId = p.FolderId,
+            PermissionType = p.PermissionType,
+            PermissionId = p.PermissionId
+        });
+    }
 }

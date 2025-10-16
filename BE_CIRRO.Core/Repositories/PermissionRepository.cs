@@ -32,4 +32,11 @@ public class PermissionRepository : GenericRepository<Permission>, IPermissionRe
                 .Include(p => p.File)
                 .ToListAsync();
     }
+
+    public async Task<IEnumerable<Permission>> GetByFolderIdAsync(Guid folderId)
+    {
+        return await _context.Permissions
+                .Where(p => p.FolderId == folderId)
+                .ToListAsync();
+    }
 }
