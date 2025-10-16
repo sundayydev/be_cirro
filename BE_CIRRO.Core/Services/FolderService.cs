@@ -67,6 +67,12 @@ public class FolderService
         await _folderRepository.UpdateAsync(existingFolder);
         return existingFolder;
     }
+    public async Task<IEnumerable<FolderDto>> GetFoldersByUserAsync(Guid ownerId)
+    {
+        var folders = await _folderRepository.GetRootFoldersByUserAsync(ownerId);
+        return _mapper.Map<IEnumerable<FolderDto>>(folders);
+    }
+
 
 
     public async Task<bool> DeleteFolderAsync(Guid id)

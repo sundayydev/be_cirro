@@ -25,4 +25,10 @@ public class FileRepository : GenericRepository<File>, IFileRepository
             .Where(f => f.FolderId == folderId)
             .ToListAsync();
     }
+    public async Task<IEnumerable<File>> GetByUserAsync(Guid userId)
+    {
+        return await _context.Files
+            .Where(f => f.OwnerId == userId)
+            .ToListAsync();
+    }
 }

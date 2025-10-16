@@ -39,6 +39,11 @@ public class FileService
         var file = await _fileRepository.GetByIdAsync(id);
         return _mapper.Map<FileDto?>(file);
     }
+    public async Task<IEnumerable<FileDto>> GetByUserAsync(Guid userId)
+    {
+        var file = await _fileRepository.GetByUserAsync(userId);
+        return _mapper.Map<IEnumerable<FileDto>>(file);
+    }
 
     public async Task<FileDto> UploadAsync(IFormFile file, Guid ownerId, Guid folderId)
     {

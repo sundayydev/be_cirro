@@ -72,7 +72,7 @@ namespace BE_CIRRO.API.Controllers
 
 
         // PUT: api/folder/{id}
-        [HttpPut("{id:guid}")]
+        [HttpPatch("{id:guid}")]
         [SwaggerOperation(Summary = "Cập nhật thông tin thư mục")]
         public async Task<IActionResult> UpdateFolder(Guid id, [FromBody] FolderUpdateDto dto)
         {
@@ -94,6 +94,30 @@ namespace BE_CIRRO.API.Controllers
                 return NotFound(ApiResponseFactory.NotFound<object>("Không tìm thấy thư mục với ID đã cho."));
             return Ok(ApiResponseFactory.Deleted("Xóa thư mục thành công."));
         }
+        // GET: api/folder/user/{ownerId}
+        [HttpGet("user/{ownerId:guid}")]
+        [SwaggerOperation(Summary = "Lấy tất cả các thư mục của user (dạng phẳng, không có cây)")]
+        public async Task<IActionResult> GetFoldersByUser(Guid ownerId)
+        {
+            try
+            {
+                var folders = await _folderService.GetFoldersByUserAsync(ownerId);
+
+                if (folders == null || !folders.Any())
+                    return NotFound(ApiResponseFactory.NotFound<object>(
+                        $"Không tìm thấy thư mục nào của user: {ownerId}"
+                    ));
+
+                return Ok(ApiResponseFactory.Success(folders, "Lấy danh sách thư mục theo user thành công."));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy danh sách thư mục theo user {OwnerId}", ownerId);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    ApiResponseFactory.ServerError("Đã xảy ra lỗi khi lấy danh sách thư mục."));
+            }
+        }
+
 
         // GET: api/folder/tree/{ownerId}
         [HttpGet("tree/{ownerId:guid}")]

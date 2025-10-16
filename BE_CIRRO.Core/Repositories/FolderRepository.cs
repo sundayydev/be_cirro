@@ -33,5 +33,12 @@ public class FolderRepository : GenericRepository<Folder>, IFolderRepository
             .Include(f => f.Owner)
             .ToListAsync();
     }
+    public async Task<IEnumerable<Folder>> GetRootFoldersByUserAsync(Guid ownerId)
+    {
+        return await _context.Folders
+            .Where(f => f.OwnerId == ownerId && f.ParentFolderId == null)
+            .ToListAsync();
+    }
+
 
 }
