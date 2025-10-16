@@ -48,6 +48,20 @@ public class UserService
         return existingUser;
     }
 
+    public async Task<User?> UpdateUserAsync(User user)
+    {
+        var existingUser = await _userRepository.GetByIdAsync(user.UserId);
+        if (existingUser == null) return null;
+
+        existingUser.Username = user.Username;
+        existingUser.Password = user.Password;
+        existingUser.Email = user.Email;
+        existingUser.Role = user.Role;
+
+        await _userRepository.UpdateAsync(existingUser);
+        return existingUser;
+    }
+
     public async Task<bool> DeleteUserAsync(Guid id)
     {
         var user = await _userRepository.GetByIdAsync(id);

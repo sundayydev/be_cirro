@@ -73,4 +73,77 @@ public class FileVersionService
         var fileName = $"{file.Name}_({version.VersionNumber})";
         return await _s3Service.GetFileStreamAsync(file.OwnerId, file.FolderId, fileName);
     }
+
+    // Lấy tất cả phiên bản file trong hệ thống
+    public async Task<IEnumerable<FileVersion>> GetAllAsync()
+    {
+        return await _fileVersionRepo.GetAllAsync();
+    }
+
+    // Xóa một phiên bản file cụ thể
+    public async Task<bool> DeleteAsync(Guid versionId)
+    {
+        var version = await _fileVersionRepo.GetByIdAsync(versionId);
+        if (version == null) return false;
+
+        // Xóa file từ S3
+        var file = await _fileRepo.GetByIdAsync(version.FileId);
+        if (file != null)
+        {
+            var fileName = $"{file.Name}_({version.VersionNumber})";
+            await _s3Service.DeleteFileAsync(file.OwnerId, file.FolderId, fileName);
+        }
+
+        await _fileVersionRepo.DeleteAsync(version);
+        return true;
+    }
+
+    // Cập nhật thông tin phiên bản file
+    public async Task<FileVersion?> UpdateAsync(Guid versionId, FileVersionUpdateDto dto)
+    {
+        var version = await _fileVersionRepo.GetByIdAsync(versionId);
+        if (version == null) return null;
+
+        // Cập nhật các thông tin có thể thay đổi
+        if (dto.VersionNumber.HasValue)
+        {
+            version.VersionNumber = dto.VersionNumber.Value;
+        }
+
+        version.CreatedAt = dto.UpdatedAt ?? DateTime.UtcNow;
+
+        await _fileVersionRepo.UpdateAsync(version);
+        return version;
+    }
+
+    // Lấy phiên bản mới nhất của file
+    public async Task<FileVersion?> GetLatestVersionAsync(Guid fileId)
+    {
+        return await _fileVersionRepo.GetLatestVersionAsync(fileId);
+    }
+
+    // Khôi phục file về phiên bản cụ thể
+    public async Task<bool> RestoreVersionAsync(Guid versionId)
+    {
+        var version = await _fileVersionRepo.GetByIdAsync(versionId);
+        if (version == null) return false;
+
+        var file = await _fileRepo.GetByIdAsync(version.FileId);
+        if (file == null) return false;
+
+        // Tạo phiên bản mới từ phiên bản được chọn để khôi phục
+        var restoreVersion = new FileVersion
+        {
+            VersionId = Guid.NewGuid(),
+            FileId = version.FileId,
+            File = file,
+            VersionNumber = (await _fileVersionRepo.GetByFileAsync(file.FileId)).Count() + 1,
+            FilePath = version.FilePath, // Sử dụng cùng đường dẫn file
+            Size = version.Size,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await _fileVersionRepo.AddAsync(restoreVersion);
+        return true;
+    }
 }

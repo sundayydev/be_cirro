@@ -30,6 +30,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<PermissionService>();    
         services.AddScoped<IPermissionRepository, PermissionRepository>();
 
+        //Auth
+        services.AddScoped<AuthService>();
 
         return services;
     }
