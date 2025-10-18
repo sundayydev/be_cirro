@@ -21,16 +21,19 @@ public class PermissionRepository : GenericRepository<Permission>, IPermissionRe
     public async Task<IEnumerable<Permission>> GetByFileIdAsync(Guid fileId)
     {
         return await _context.Permissions
-                .Where(p => p.FileId == fileId)
-                .ToListAsync();
+            .Where(p => p.FileId == fileId)
+            .Include(p => p.File)          
+            .ThenInclude(f => f.Owner)    
+            .ToListAsync();
     }
 
     public async Task<IEnumerable<Permission>> GetByUserIdAsync(Guid userId)
     {
         return await _context.Permissions
-                .Where(p => p.UserId == userId)
-                .Include(p => p.File)
-                .ToListAsync();
+            .Where(p => p.UserId == userId)
+            .Include(p => p.File)
+            .ThenInclude(f => f.Owner) 
+            .ToListAsync();
     }
 
     public async Task<IEnumerable<Permission>> GetByFolderIdAsync(Guid folderId)
@@ -39,4 +42,6 @@ public class PermissionRepository : GenericRepository<Permission>, IPermissionRe
                 .Where(p => p.FolderId == folderId)
                 .ToListAsync();
     }
+    
+
 }

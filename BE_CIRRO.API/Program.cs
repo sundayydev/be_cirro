@@ -146,7 +146,8 @@ builder.Services.AddSwaggerGen(c =>
 
 // Thay logger mặc định của ASP.NET Core bằng Serilog
 builder.Host.UseSerilog((ctx, lc) => lc.ReadFrom.Configuration(ctx.Configuration));
-
+builder.Services.AddMapster();
+MapsterConfig.Configure();
 var app = builder.Build();
 
 // Thêm middleware custom

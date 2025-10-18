@@ -29,6 +29,7 @@ public class FileRepository : GenericRepository<File>, IFileRepository
     {
         return await _context.Files
             .Where(f => f.OwnerId == userId)
+            .Include(f => f.Owner) 
             .ToListAsync();
     }
 }

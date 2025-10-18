@@ -37,6 +37,7 @@ public class FolderRepository : GenericRepository<Folder>, IFolderRepository
     {
         return await _context.Folders
             .Where(f => f.OwnerId == ownerId && f.ParentFolderId == null)
+            .Include(f => f.Owner) 
             .ToListAsync();
     }
 
