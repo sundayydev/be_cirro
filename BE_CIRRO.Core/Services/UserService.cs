@@ -70,4 +70,9 @@ public class UserService
         await _userRepository.DeleteAsync(user);
         return true;
     }
+    public async Task<User?> GetUserByEmailAsync(string email)
+    {
+        return await _userRepository.GetUserByEmailAsync(email);
+    }
+    
 }

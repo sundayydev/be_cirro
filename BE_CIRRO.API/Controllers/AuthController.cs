@@ -203,5 +203,69 @@ namespace BE_CIRRO.API.Controllers
                 return StatusCode(500, ApiResponseFactory.ServerError("Lỗi khi kiểm tra refresh token: " + ex.Message));
             }
         }
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ApiResponseFactory.ValidationError<object>("Dữ liệu đầu vào không hợp lệ"));
+
+                var success = await _authService.SendOtpAsync(dto);
+                if (!success)
+                    return BadRequest(ApiResponseFactory.ValidationError<object>("Email không tồn tại hoặc không hợp lệ"));
+
+                return Ok(ApiResponseFactory.Success<object>(null, "Mã OTP đã được gửi đến email"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi gửi OTP");
+                return StatusCode(500, ApiResponseFactory.ServerError("Lỗi khi gửi OTP: " + ex.Message));
+            }
+        }
+
+        // POST: /api/auth/verify-otp - Xác nhận OTP
+        [HttpPost("verify-otp")]
+        public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpDto dto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ApiResponseFactory.ValidationError<object>("Dữ liệu đầu vào không hợp lệ"));
+
+                var success = await _authService.VerifyOtpAsync(dto);
+                if (!success)
+                    return BadRequest(ApiResponseFactory.ValidationError<object>("Mã OTP không hợp lệ hoặc đã hết hạn"));
+
+                return Ok(ApiResponseFactory.Success<object>(null, "Xác nhận OTP thành công"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi xác nhận OTP");
+                return StatusCode(500, ApiResponseFactory.ServerError("Lỗi khi xác nhận OTP: " + ex.Message));
+            }
+        }
+
+        // POST: /api/auth/reset-password - Đặt lại mật khẩu
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ApiResponseFactory.ValidationError<object>("Dữ liệu đầu vào không hợp lệ"));
+
+                var success = await _authService.ResetPasswordAsync(dto);
+                if (!success)
+                    return BadRequest(ApiResponseFactory.ValidationError<object>("Mã OTP hoặc email không hợp lệ"));
+
+                return Ok(ApiResponseFactory.Success<object>(null, "Đặt lại mật khẩu thành công"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi đặt lại mật khẩu");
+                return StatusCode(500, ApiResponseFactory.ServerError("Lỗi khi đặt lại mật khẩu: " + ex.Message));
+            }
+        }
     }
 }
