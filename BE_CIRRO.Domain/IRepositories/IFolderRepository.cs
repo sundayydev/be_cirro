@@ -11,4 +11,5 @@ public interface IFolderRepository : IRepository<Models.Folder>
 {
     Task<IEnumerable<Folder>> GetByOwnerAsync(Guid ownerId);
     Task<IEnumerable<Folder>> GetByParentAsync(Guid? parentId);
+    Task<IEnumerable<Folder>> GetRootFoldersByUserAsync(Guid userId);
 }

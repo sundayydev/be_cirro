@@ -13,11 +13,16 @@ namespace BE_CIRRO.Core.Services;
 public class PermissionService
 {
     private readonly IPermissionRepository _permissionRepo;
+    private readonly IUserRepository _userRepo;
+    private readonly IFileRepository _fileRepo;
     private readonly IMapper _mapper;
 
-    public PermissionService(IPermissionRepository permissionRepo, IMapper mapper)
+    public PermissionService(IPermissionRepository permissionRepo, IUserRepository userRepo, IFileRepository fileRepo,
+        IMapper mapper)
     {
         _permissionRepo = permissionRepo;
+        _userRepo = userRepo;
+        _fileRepo = fileRepo;
         _mapper = mapper;
     }
 
@@ -161,4 +166,33 @@ public class PermissionService
             PermissionId = p.PermissionId
         });
     }
+    public async Task<PermissionDto?> CreateByEmailAsync(PermissionCreateByEmailDto dto)
+    {
+        // 1. Tìm người dùng dựa trên email
+        var user = await _userRepo.GetUserByEmailAsync(dto.Email);
+        if (user == null)
+        {
+            return null; // Hoặc throw exception
+        }
+
+        // 2. Lấy thông tin file để tìm FolderId
+        var file = await _fileRepo.GetByIdAsync(dto.FileId);
+        if (file == null)
+        {
+            throw new Exception("File does not exist.");
+        }
+
+        // 3. Tạo permission với UserId, FileId, và FolderId từ file
+        var permissionDto = new PermissionCreateDto
+        {
+            UserId = user.UserId,
+            FileId = dto.FileId,
+            FolderId = file.FolderId, // Lấy từ file
+            PermissionType = "Edit",
+        };
+
+        // 4. Tạo permission
+        return await CreateAsync(permissionDto);
+    }
+
 }

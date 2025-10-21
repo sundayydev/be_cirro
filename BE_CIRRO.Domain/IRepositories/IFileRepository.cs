@@ -9,4 +9,6 @@ namespace BE_CIRRO.Domain.IRepositories;
 public interface IFileRepository : IRepository<Models.File>
 {
     Task<IEnumerable<Models.File>> GetByFolderAsync(Guid folderId);
+    Task<IEnumerable<Models.File>> GetByUserAsync(Guid userId);
+  
 }

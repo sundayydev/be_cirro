@@ -10,6 +10,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -25,6 +27,7 @@ public class AuthService
     // private readonly Dictionary<string, string> _refreshTokens = new();
     private readonly StackExchange.Redis.IDatabase _redisDb;
     private const string RefreshTokenPrefix = "refresh_token:";
+    private const string OtpPrefix = "otp:";
 
     public AuthService(UserService userService, IConfiguration configuration, ILogger<AuthService> logger, IConnectionMultiplexer redis)
     {
@@ -36,6 +39,9 @@ public class AuthService
 
     // Helper để lấy key Redis nhất quán
     private string GetRedisKey(string refreshToken) => $"{RefreshTokenPrefix}{refreshToken}";
+    
+    // Helper để lấy key Redis cho OTP
+    private string GetOtpKey(string email) => $"{OtpPrefix}{email}";
 
     // Đăng ký user mới (Không thay đổi)
     public async Task<UserDto?> RegisterAsync(RegisterDto dto)
@@ -375,5 +381,151 @@ public class AuthService
         }
 
         return null;
+    }
+    public async Task<bool> SendOtpAsync(ForgotPasswordDto dto)
+    {
+        try
+        {
+            // Tìm người dùng qua email
+            var user = await _userService.GetUserByEmailAsync(dto.Email);
+            if (user == null)
+            {
+                _logger.LogWarning("Không tìm thấy người dùng với email: {Email}", dto.Email);
+                return false; // Trả về false nhưng không tiết lộ email không tồn tại
+            }
+
+            // Tạo OTP (6 chữ số)
+            var otp = GenerateOtp();
+            var otpKey = GetOtpKey(dto.Email);
+
+            // Lưu OTP vào Redis với thời gian hết hạn (ví dụ: 5 phút)
+            var otpExpiry = TimeSpan.FromMinutes(5);
+            bool stored = await _redisDb.StringSetAsync(
+                otpKey,
+                otp,
+                otpExpiry
+            );
+
+            if (!stored)
+            {
+                _logger.LogError("Không thể lưu OTP vào Redis cho email {Email}", dto.Email);
+                throw new Exception("Lỗi hệ thống: Không thể tạo OTP.");
+            }
+
+            // Gửi email chứa OTP
+            await SendOtpEmailAsync(dto.Email, otp);
+
+            _logger.LogInformation("OTP đã được gửi đến {Email}", dto.Email);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi gửi OTP cho email {Email}", dto.Email);
+            throw;
+        }
+    }
+    public async Task<bool> VerifyOtpAsync(VerifyOtpDto dto)
+    {
+        try
+        {
+            var otpKey = GetOtpKey(dto.Email);
+            RedisValue storedOtp = await _redisDb.StringGetAsync(otpKey);
+
+            if (storedOtp.IsNullOrEmpty)
+            {
+                _logger.LogWarning("OTP không hợp lệ hoặc đã hết hạn cho email: {Email}", dto.Email);
+                return false;
+            }
+
+            if (storedOtp != dto.Otp)
+            {
+                _logger.LogWarning("OTP không đúng cho email: {Email}", dto.Email);
+                return false;
+            }
+
+            // OTP hợp lệ, giữ OTP trong Redis để sử dụng ở bước đặt lại mật khẩu
+            _logger.LogInformation("OTP xác nhận thành công cho email: {Email}", dto.Email);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi xác nhận OTP cho email {Email}", dto.Email);
+            throw;
+        }
+    }
+    public async Task<bool> ResetPasswordAsync(ResetPasswordDto dto)
+    {
+        try
+        {
+            // Xác minh OTP trước
+            var otpKey = GetOtpKey(dto.Email);
+            RedisValue storedOtp = await _redisDb.StringGetAsync(otpKey);
+            
+            // Tìm người dùng qua email
+            var user = await _userService.GetUserByEmailAsync(dto.Email);
+            if (user == null)
+            {
+                _logger.LogWarning("Không tìm thấy người dùng với email: {Email}", dto.Email);
+                await _redisDb.KeyDeleteAsync(otpKey);
+                return false;
+            }
+
+            // Cập nhật mật khẩu
+            user.Password = HashPassword(dto.NewPassword);
+            await _userService.UpdateUserAsync(user.UserId, user);
+
+            // Xóa OTP sau khi sử dụng
+            await _redisDb.KeyDeleteAsync(otpKey);
+
+            _logger.LogInformation("Mật khẩu đã được đặt lại thành công cho email: {Email}", dto.Email);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi đặt lại mật khẩu cho email {Email}", dto.Email);
+            throw;
+        }
+    }
+    private string GenerateOtp()
+    {
+        var random = new Random();
+        return random.Next(100000, 999999).ToString();
+    }
+    private async Task SendOtpEmailAsync(string email, string otp)
+    {
+        try
+        {
+            var smtpSettings = _configuration.GetSection("SmtpSettings");
+            var smtpClient = new SmtpClient
+            {
+                Host = smtpSettings["Host"] ?? "smtp.gmail.com",
+                Port = int.Parse(smtpSettings["Port"] ?? "587"),
+                EnableSsl = bool.Parse(smtpSettings["EnableSsl"] ?? "true"),
+                UseDefaultCredentials = false,
+                Credentials = new NetworkCredential(
+                    smtpSettings["Username"],
+                    smtpSettings["Password"]
+                )
+            };
+
+            var mailMessage = new MailMessage
+            {
+                From = new MailAddress(smtpSettings["FromEmail"] ?? "no-reply@becirro.com", "BE_CIRRO"),
+                Subject = "Mã OTP để đặt lại mật khẩu",
+                Body = $@"<h2>Mã OTP đặt lại mật khẩu</h2>
+                        <p>Mã OTP của bạn là: <strong>{otp}</strong></p>
+                        <p>Mã này sẽ hết hạn sau 5 phút.</p>
+                        <p>Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>",
+                IsBodyHtml = true
+            };
+            mailMessage.To.Add(email);
+
+            await smtpClient.SendMailAsync(mailMessage);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi gửi email OTP đến {Email}", email);
+            throw new Exception("Không thể gửi email OTP.", ex);
+        }
     }
 }

@@ -238,16 +238,20 @@ namespace BE_CIRRO.API.Controllers
         {
             try
             {
-                // TODO: Implement get files by user logic
-                // var files = await _fileService.GetByUserAsync(userId);
-                var files = new List<FileDto>(); // Placeholder
-                return Ok(ApiResponseFactory.Success(files, $"Lấy danh sách file của user {userId} thành công"));
+                var files = await _fileService.GetByUserAsync(userId);
+
+                if (files == null || !files.Any())
+                    return NotFound(ApiResponseFactory.NotFound<object>($"Không tìm thấy file nào của user: {userId}"));
+
+                return Ok(ApiResponseFactory.Success(files.Adapt<List<FileDto>>(), "Lấy danh sách file theo user thành công"));
             }
             catch (Exception ex)
             {
                 return StatusCode(500, ApiResponseFactory.ServerError("Lỗi khi lấy danh sách file của user: " + ex.Message));
             }
         }
+
+        
 
         // GET: /api/files/{id}/versions - Lấy danh sách versions của file
         [HttpGet("{id}/versions")]
@@ -369,5 +373,6 @@ namespace BE_CIRRO.API.Controllers
                 });
             }
         }
+        
     }
 }

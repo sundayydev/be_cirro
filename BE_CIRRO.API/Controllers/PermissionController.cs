@@ -200,5 +200,23 @@ namespace BE_CIRRO.API.Controllers
                 return StatusCode(500, new { message = "Failed to retrieve accessible folders", error = ex.Message });
             }
         }
+        // Tạo permission bằng email
+        [HttpPost("share-by-email")]
+        public IActionResult CreateByEmail([FromBody] PermissionCreateByEmailDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var permission = _permissionService.CreateByEmailAsync(dto);
+            if (permission == null)
+            {
+                return NotFound(new { message = "User with the provided email does not exist." });
+            }
+            
+            return Ok(ApiResponseFactory.Success(permission));
+        }
+
     }
 }

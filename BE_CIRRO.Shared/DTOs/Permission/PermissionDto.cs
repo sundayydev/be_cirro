@@ -13,4 +13,5 @@ public class PermissionDto
     public Guid? FileId { get; set; }
     public Guid? FolderId { get; set; }
     public string PermissionType { get; set; } = default!;
+    public string OwnerName { get; set; }
 }

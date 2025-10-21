@@ -10,4 +10,5 @@ namespace BE_CIRRO.Domain.IRepositories;
 public interface IUserRepository : IRepository<User>
 {
     Task<User?> GetByUsernameAsync(string username);
+    Task<User?> GetUserByEmailAsync(string email);
 }
