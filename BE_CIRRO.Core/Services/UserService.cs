@@ -29,7 +29,7 @@ public class UserService
     public async Task<User> CreateUserAsync(User user)
     {
         user.UserId = Guid.NewGuid();
-        user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
+        user.Password = user.Password;
         await _userRepository.AddAsync(user);
         return user;
     }
